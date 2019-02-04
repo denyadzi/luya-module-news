@@ -29,4 +29,5 @@ return [
 // 1.0.0
     
     'teaser_text' => 'Teaser Text',
+    'cat_parent_cat_id' => 'Parent',
 ];

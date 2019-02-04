@@ -38,7 +38,7 @@ class Cat extends NgRestModel
      */
     public function eventBeforeDelete($event)
     {
-        if (count($this->articles) > 0) {
+        if (count($this->articles) > 0 || count($this->children)) {
             $this->addError('id', Module::t('cat_delete_error'));
             $event->isValid = false;
         }
@@ -51,6 +51,7 @@ class Cat extends NgRestModel
     {
         return [
             'title' => Module::t('cat_title'),
+            'parent_cat_id' => Module::t('cat_parent_cat_id'),
         ];
     }
 
@@ -61,6 +62,7 @@ class Cat extends NgRestModel
     {
         return [
             [['title'], 'required'],
+            ['parent_cat_id', 'number', 'integerOnly' => true],
         ];
     }
 
@@ -79,6 +81,12 @@ class Cat extends NgRestModel
     {
         return [
             'title' => 'text',
+            'parent_cat_id' => [
+                'selectModel',
+                'modelClass' => self::className(),
+                'valueField' => 'id',
+                'labelField' => 'title',
+            ],
         ];
     }
 
@@ -88,7 +96,8 @@ class Cat extends NgRestModel
     public function ngRestScopes()
     {
         return [
-            [['list', 'create', 'update'], ['title']],
+            [['create', 'update'], ['title', 'parent_cat_id']],
+            [['list'], ['title']],
             [['delete'], true],
         ];
     }
@@ -99,6 +108,16 @@ class Cat extends NgRestModel
     public function getArticles()
     {
         return $this->hasMany(Article::class, ['cat_id' => 'id']);
+    }
+
+    public function getParent()
+    {
+        return $this->hasOne(self::className(), ['id' => 'parent_cat_id']);
+    }
+
+    public function getChildren()
+    {
+        return $this->hasMany(self::className(), ['parent_cat_id' => 'id']);
     }
 
     public function ngRestRelations()
